@@ -1,14 +1,17 @@
 from langchain.chains import RetrievalQA
-from langchain.chat_models import ChatOpenAI
+from langchain_community.llms import HuggingFaceHub
 
+def create_rag_agent(vector_store):
+    retriever = vector_store.as_retriever()
 
-def create_rag_agent(vectorstore):
-    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
-
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        retriever=vectorstore.as_retriever(),
-        return_source_documents=True
+    llm = HuggingFaceHub(
+        repo_id="google/flan-t5-base",
+        model_kwargs={"temperature": 0.5}
     )
 
-    return qa_chain
+    qa = RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=retriever
+    )
+
+    return qa
