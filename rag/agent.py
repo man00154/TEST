@@ -1,4 +1,3 @@
-from langchain.chains.retrieval_qa.base import RetrievalQA
 from langchain_community.llms import HuggingFaceHub
 
 def create_rag_agent(vector_store):
@@ -9,9 +8,20 @@ def create_rag_agent(vector_store):
         model_kwargs={"temperature": 0.5}
     )
 
-    qa = RetrievalQA.from_chain_type(
-        llm=llm,
-        retriever=retriever
-    )
+    def rag_chain(query):
+        docs = retriever.get_relevant_documents(query)
+        context = "\n".join([doc.page_content for doc in docs])
 
-    return qa
+        prompt = f"""
+        Answer the question based on the context below.
+
+        Context:
+        {context}
+
+        Question:
+        {query}
+        """
+
+        return llm.invoke(prompt)
+
+    return rag_chain
