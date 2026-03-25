@@ -16,7 +16,7 @@ st.write("Ask questions from your Excel files using AI")
 # -------------------------------
 # IMPORTANT FIX: Use relative path
 # -------------------------------
-DATA_FOLDER = "data"   # ✅ FIXED (NOT C-Folder)
+DATA_FOLDER = "C-Folder"   
 
 # -------------------------------
 # Load Excel Files
