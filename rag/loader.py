@@ -2,7 +2,7 @@ import pandas as pd
 import os
 
 
-def load_excel_files(data_path="TEST"):
+def load_excel_files(data_path="C-Folder"):
     all_data = []
 
     for file in os.listdir(data_path):
