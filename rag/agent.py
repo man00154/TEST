@@ -15,10 +15,8 @@ def create_rag_agent(vector_store):
         context = "\n".join([doc.page_content for doc in docs])
 
         prompt = f"""
-        You are an AI assistant.
-
         Answer ONLY using the context below.
-        If answer not found, say "Not found".
+        If not found, say "Not found".
 
         Context:
         {context}
@@ -27,7 +25,6 @@ def create_rag_agent(vector_store):
         {query}
         """
 
-        response = llm.invoke(prompt)
-        return response.content
+        return llm.invoke(prompt).content
 
     return rag_chain
