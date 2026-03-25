@@ -20,7 +20,7 @@ st.write("Ask questions from your Excel files using AI")
 # -----------------------------
 # Config
 # -----------------------------
-DATA_FOLDER = "data"   
+DATA_FOLDER = "C-Folder"   
 
 # -----------------------------
 # RAG Setup Function
