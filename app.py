@@ -14,16 +14,19 @@ st.title("📊 Excel RAG AI Assistant")
 st.write("Ask questions from your Excel files using AI")
 
 # -------------------------------
+# IMPORTANT FIX: Use relative path
+# -------------------------------
+DATA_FOLDER = "data"   # ✅ FIXED (NOT C-Folder)
+
+# -------------------------------
 # Load Excel Files
 # -------------------------------
-DATA_FOLDER = "C-Folder"
-
 @st.cache_data
 def load_excel_data():
     all_texts = []
 
     if not os.path.exists(DATA_FOLDER):
-        st.error(f"❌ Data folder '{DATA_FOLDER}' not found")
+        st.error(f"❌ Data folder '{DATA_FOLDER}' not found in repo")
         return []
 
     files = [f for f in os.listdir(DATA_FOLDER) if f.endswith(".xlsx")]
@@ -40,11 +43,13 @@ def load_excel_data():
 
             # Convert each row into text
             for _, row in df.iterrows():
-                text = ", ".join([f"{col}: {row[col]}" for col in df.columns])
+                text = ", ".join(
+                    [f"{col}: {row[col]}" for col in df.columns]
+                )
                 all_texts.append(text)
 
         except Exception as e:
-            st.error(f"Error reading {file}: {e}")
+            st.error(f"❌ Error reading {file}: {e}")
 
     return all_texts
 
@@ -58,11 +63,18 @@ def setup_rag():
     if not texts:
         return None, None
 
-    documents = create_documents(texts)
-    vector_store = create_vector_store(documents)
-    rag_agent = create_rag_agent(vector_store)
+    try:
+        documents = create_documents(texts)
+        vector_store = create_vector_store(documents)
 
-    return vector_store, rag_agent
+        # ✅ Using OpenAI (no transformers)
+        rag_agent = create_rag_agent(vector_store)
+
+        return vector_store, rag_agent
+
+    except Exception as e:
+        st.error(f"❌ RAG Setup Error: {e}")
+        return None, None
 
 # Initialize
 vector_store, rag_agent = setup_rag()
@@ -77,8 +89,10 @@ query = st.text_input("Enter your query:")
 if st.button("Ask AI"):
     if not query:
         st.warning("⚠️ Please enter a question")
+
     elif rag_agent is None:
-        st.error("❌ RAG system not initialized")
+        st.error("❌ RAG system not initialized. Check errors above.")
+
     else:
         with st.spinner("Thinking... 🤖"):
             try:
@@ -88,14 +102,20 @@ if st.button("Ask AI"):
                 st.write(response)
 
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"❌ Error during query: {e}")
 
 # -------------------------------
-# Debug Info (Optional)
+# Debug Info (VERY IMPORTANT)
 # -------------------------------
 with st.expander("🔍 Debug Info"):
+    st.write("Current working directory:")
+    st.write(os.getcwd())
+
+    st.write("Files in project root:")
+    st.write(os.listdir("."))
+
     st.write("Files in data folder:")
     if os.path.exists(DATA_FOLDER):
         st.write(os.listdir(DATA_FOLDER))
     else:
-        st.write("No data folder found")
+        st.write("❌ data folder not found")
