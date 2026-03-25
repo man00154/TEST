@@ -1,23 +1,24 @@
-from langchain_community.llms import HuggingFacePipeline
-from transformers import pipeline
+from langchain_openai import ChatOpenAI
+import streamlit as st
 
 def create_rag_agent(vector_store):
     retriever = vector_store.as_retriever()
 
-    pipe = pipeline(
-        "text-generation",   
-        model="google/flan-t5-base",
-        max_new_tokens=256
+    llm = ChatOpenAI(
+        model="gpt-4o-mini",
+        temperature=0,
+        api_key=st.secrets["OPENAI_API_KEY"]   # secure
     )
-
-    llm = HuggingFacePipeline(pipeline=pipe)
 
     def rag_chain(query):
         docs = retriever.get_relevant_documents(query)
         context = "\n".join([doc.page_content for doc in docs])
 
         prompt = f"""
-        Answer the question based on the context below.
+        You are an intelligent data assistant.
+
+        Answer ONLY from the context below.
+        If answer is not present, say "Not found".
 
         Context:
         {context}
@@ -26,6 +27,7 @@ def create_rag_agent(vector_store):
         {query}
         """
 
-        return llm.invoke(prompt)
+        response = llm.invoke(prompt)
+        return response.content
 
     return rag_chain
