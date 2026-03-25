@@ -9,7 +9,7 @@ st.title("📊 Excel RAG AI Agent Test")
 # Load data
 @st.cache_data
 def load_data():
-    return load_excel_files("TEST")
+    return load_excel_files("C-Folder")
 
 
 df = load_data()
