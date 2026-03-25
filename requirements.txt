@@ -1,0 +1,9 @@
+streamlit
+pandas
+openpyxl
+langchain
+chromadb
+sentence-transformers
+faiss-cpu
+tiktoken
+openai
