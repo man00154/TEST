@@ -4,6 +4,9 @@ import streamlit as st
 def create_rag_agent(vector_store):
     retriever = vector_store.as_retriever()
 
+    # 🔥 DEBUG LINE (IMPORTANT)
+    print("✅ USING OPENAI - NO TRANSFORMERS")
+
     llm = ChatOpenAI(
         model="gpt-4o-mini",
         temperature=0,
