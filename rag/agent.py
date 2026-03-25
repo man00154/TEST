@@ -7,7 +7,7 @@ def create_rag_agent(vector_store):
     llm = ChatOpenAI(
         model="gpt-4o-mini",
         temperature=0,
-        api_key=st.secrets["OPENAI_API_KEY"]   # secure
+        api_key=st.secrets["OPENAI_API_KEY"]
     )
 
     def rag_chain(query):
@@ -15,10 +15,10 @@ def create_rag_agent(vector_store):
         context = "\n".join([doc.page_content for doc in docs])
 
         prompt = f"""
-        You are an intelligent data assistant.
+        You are an AI assistant.
 
-        Answer ONLY from the context below.
-        If answer is not present, say "Not found".
+        Answer ONLY using the context below.
+        If answer not found, say "Not found".
 
         Context:
         {context}
