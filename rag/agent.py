@@ -1,50 +1,14 @@
 from langchain.chains import RetrievalQA
-
-# =========================
-# app.py (MAIN STREAMLIT APP)
-# =========================
-import streamlit as st
-from rag.loader import load_excel_files
-from rag.vector_store import create_documents, create_vector_store
-from rag.agent import create_rag_agent
-
-st.set_page_config(page_title="Excel AI Agent", layout="wide")
-
-st.title("📊 Excel RAG AI Agent (One-click Insights)")
-
-# Load data
-@st.cache_data
-def load_data():
-    return load_excel_files("TEST")
+from langchain.chat_models import ChatOpenAI
 
 
-df = load_data()
+def create_rag_agent(vectorstore):
+    llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0)
 
-st.subheader("📁 Data Preview")
-st.dataframe(df.head())
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=vectorstore.as_retriever(),
+        return_source_documents=True
+    )
 
-# Build RAG
-@st.cache_resource
-def build_rag():
-    docs = create_documents(df)
-    vs = create_vector_store(docs)
-    agent = create_rag_agent(vs)
-    return agent
-
-agent = build_rag()
-
-# Query UI
-st.subheader("Ask Questions")
-query = st.text_input("Ask about any row, column, customer, capacity, etc.")
-
-if st.button("Run Query"):
-    if query:
-        with st.spinner("Thinking..."):
-            result = agent(query)
-
-            st.success("Answer:")
-            st.write(result['result'])
-
-            st.subheader("📄 Source Data")
-            for doc in result['source_documents'][:3]:
-                st.write(doc.page_content)
+    return qa_chain
