@@ -1,12 +1,17 @@
-from langchain_community.llms import HuggingFaceHub
+from langchain_community.llms import HuggingFacePipeline
+from transformers import pipeline
 
 def create_rag_agent(vector_store):
     retriever = vector_store.as_retriever()
 
-    llm = HuggingFaceHub(
-        repo_id="google/flan-t5-base",
-        model_kwargs={"temperature": 0.5}
+    # Local model (no API key needed)
+    pipe = pipeline(
+        "text2text-generation",
+        model="google/flan-t5-base",
+        max_length=512
     )
+
+    llm = HuggingFacePipeline(pipeline=pipe)
 
     def rag_chain(query):
         docs = retriever.get_relevant_documents(query)
