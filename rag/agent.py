@@ -1,17 +1,12 @@
-from langchain_community.llms import HuggingFacePipeline
-from transformers import pipeline
+from langchain_openai import ChatOpenAI
 
 def create_rag_agent(vector_store):
     retriever = vector_store.as_retriever()
 
-    # Local model (no API key needed)
-    pipe = pipeline(
-        "text2text-generation",
-        model="google/flan-t5-base",
-        max_length=512
+    llm = ChatOpenAI(
+        model="gpt-4o-mini",   # fast + cheap
+        temperature=0
     )
-
-    llm = HuggingFacePipeline(pipeline=pipe)
 
     def rag_chain(query):
         docs = retriever.get_relevant_documents(query)
@@ -27,6 +22,6 @@ def create_rag_agent(vector_store):
         {query}
         """
 
-        return llm.invoke(prompt)
+        return llm.invoke(prompt).content
 
     return rag_chain
