@@ -1,12 +1,11 @@
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents import Document
-from langchain.text_splitter import CharacterTextSplitter
+from langchain_text_splitters import CharacterTextSplitter
 
 def create_documents(texts):
     splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-    docs = splitter.create_documents(texts)
-    return docs
+    return splitter.create_documents(texts)
 
 def create_vector_store(documents):
     embeddings = HuggingFaceEmbeddings(
