@@ -16,7 +16,7 @@ st.write("Ask questions from your Excel files using AI")
 # -------------------------------
 # Load Excel Files
 # -------------------------------
-DATA_FOLDER = "data"
+DATA_FOLDER = "C-Folder"
 
 @st.cache_data
 def load_excel_data():
