@@ -1,11 +1,9 @@
 from langchain_openai import ChatOpenAI
 import streamlit as st
 
+
 def create_rag_agent(vector_store):
     retriever = vector_store.as_retriever()
-
-    
-    print("PDF ANSWER")
 
     llm = ChatOpenAI(
         model="gpt-4o-mini",
@@ -14,7 +12,9 @@ def create_rag_agent(vector_store):
     )
 
     def rag_chain(query):
-        docs = retriever.get_relevant_documents(query)
+        # ✅ FIX: NEW LangChain API
+        docs = retriever.invoke(query)
+
         context = "\n".join([doc.page_content for doc in docs])
 
         prompt = f"""
@@ -28,6 +28,8 @@ def create_rag_agent(vector_store):
         {query}
         """
 
-        return llm.invoke(prompt).content
+        response = llm.invoke(prompt)
+
+        return response.content
 
     return rag_chain
