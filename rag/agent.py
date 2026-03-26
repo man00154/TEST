@@ -12,7 +12,7 @@ def create_rag_agent(vector_store):
     )
 
     def rag_chain(query):
-        # ✅ FIX: NEW LangChain API
+        # ✅ FIXED LINE
         docs = retriever.invoke(query)
 
         context = "\n".join([doc.page_content for doc in docs])
