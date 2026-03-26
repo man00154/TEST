@@ -1,82 +1,103 @@
 import streamlit as st
 import os
+import pandas as pd
 
-from rag.excel_loader import load_excel_files
-from rag.vector_store import create_vector_store
+from rag.vector_store import create_documents, create_vector_store
 from rag.agent import create_rag_agent
 
-# -----------------------------
-# Page Config
-# -----------------------------
-st.set_page_config(page_title="Excel RAG AI", layout="wide")
+st.set_page_config(page_title="Excel RAG App", layout="wide")
 
-st.title("📊 Excel RAG AI Assistant")
-st.write("Ask questions from your Excel files (sheet, row, column aware)")
+st.title("Excel RAG AI App")
+st.write("Ask questions from your Excel files using AI")
 
 DATA_FOLDER = "C-Folder"
 
+
 # -----------------------------
-# Cache RAG Setup
+# RAG Setup
 # -----------------------------
 @st.cache_resource
 def setup_rag():
     try:
+        all_data = []
+
         if not os.path.exists(DATA_FOLDER):
-            st.error(f"Folder '{DATA_FOLDER}' not found")
-            return None, None
+            st.error(f"Data folder '{DATA_FOLDER}' not found")
+            return None
 
-        st.info("Loading Excel files...")
+        files = [f for f in os.listdir(DATA_FOLDER) if f.endswith((".xlsx", ".xls"))]
 
-        documents = load_excel_files(DATA_FOLDER)
+        if not files:
+            st.warning("No Excel files found")
+            return None
 
-        if not documents:
-            st.error("No data found in Excel files")
-            return None, None
+        for file in files:
+            file_path = os.path.join(DATA_FOLDER, file)
 
-        st.info(f"Loaded {len(documents)} rows from Excel")
+            try:
+                # ✅ FIX: Handle xls vs xlsx properly
+                if file.endswith(".xlsx"):
+                    df = pd.read_excel(file_path, engine="openpyxl")
+                else:
+                    df = pd.read_excel(file_path, engine="xlrd")
+
+                df["source_file"] = file
+                all_data.append(df)
+
+            except Exception as e:
+                st.warning(f"Skipping {file}: {e}")
+
+        if not all_data:
+            st.error("No valid Excel files loaded")
+            return None
+
+        combined_df = pd.concat(all_data, ignore_index=True)
+
+        # ✅ FIX: Convert DataFrame → text properly
+        documents = create_documents(combined_df)
 
         vector_store = create_vector_store(documents)
+
         rag_agent = create_rag_agent(vector_store)
 
-        return vector_store, rag_agent
+        return rag_agent
 
     except Exception as e:
-        st.error(f"Setup error: {e}")
-        return None, None
+        st.error(f"Setup failed: {e}")
+        return None
 
 
-vector_store, rag_agent = setup_rag()
+rag_agent = setup_rag()
 
 # -----------------------------
-# User Input
+# UI
 # -----------------------------
-query = st.text_input("🔍 Ask your question:")
+st.subheader("Ask Your Question")
 
-if st.button("Ask AI"):
+with st.form("query_form"):
+    query = st.text_input("Enter your query:")
+    submit = st.form_submit_button("Ask AI")
+
+if submit:
     if not query:
-        st.warning("Please enter a question")
-
+        st.warning("Enter a question")
     elif rag_agent is None:
-        st.error("RAG system not initialized")
-
+        st.error("RAG not initialized")
     else:
         with st.spinner("Thinking..."):
             try:
-                response = rag_agent({"query": query})
-
+                response = rag_agent(query)
                 st.success("Answer:")
-                st.write(response["result"])
-
-                with st.expander("📄 Source Data"):
-                    for doc in response["source_documents"]:
-                        st.write(doc.page_content)
+                st.write(response)
 
             except Exception as e:
                 st.error(f"Error: {e}")
 
+
 # -----------------------------
-# Debug Info
+# Debug
 # -----------------------------
-with st.expander("⚙️ Debug Info"):
-    st.write("Current Directory:", os.getcwd())
-    st.write("Files:", os.listdir("."))
+with st.expander("Debug Info"):
+    st.write("Working Dir:", os.getcwd())
+    if os.path.exists(DATA_FOLDER):
+        st.write("Files:", os.listdir(DATA_FOLDER))
