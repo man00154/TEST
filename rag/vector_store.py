@@ -1,16 +1,25 @@
-from langchain.vectorstores import Chroma
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.docstore.document import Document
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_core.documents import Document
+from langchain_text_splitters import CharacterTextSplitter
 
-def create_vector_store(texts):
-    docs = [Document(page_content=t) for t in texts]
 
-    embeddings = OpenAIEmbeddings()
+def create_documents(df):
+    documents = []
 
-    vectordb = Chroma.from_documents(
-        docs,
-        embedding=embeddings,
-        persist_directory="chroma_db"
+    # Convert each row into readable text
+    for _, row in df.iterrows():
+        text = " | ".join([f"{col}: {row[col]}" for col in df.columns])
+        documents.append(Document(page_content=text))
+
+    splitter = CharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+
+    return splitter.split_documents(documents)
+
+
+def create_vector_store(documents):
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
-    return vectordb
+    return FAISS.from_documents(documents, embeddings)
