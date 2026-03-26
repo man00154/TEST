@@ -15,3 +15,5 @@ langchain-core
 langchain-text-splitters
 langchain-openai
 openai
+HuggingFace
+
