@@ -17,7 +17,7 @@ def create_rag_agent(vector_store):
         context = "\n".join([doc.page_content for doc in docs])
 
         prompt = f"""
-        Answer ONLY using the context below.
+        Answer ONLY using the EXCEL files from C-Folder path.
         If not found, say "Not found".
 
         Context:
