@@ -1,7 +1,6 @@
 from langchain_openai import ChatOpenAI
 import streamlit as st
 
-
 def create_rag_agent(vector_store):
     retriever = vector_store.as_retriever()
 
@@ -12,7 +11,7 @@ def create_rag_agent(vector_store):
     )
 
     def rag_chain(query):
-        # ✅ FIXED LINE
+        # ✅ ONLY THIS (no old method anywhere)
         docs = retriever.invoke(query)
 
         context = "\n".join([doc.page_content for doc in docs])
@@ -29,7 +28,6 @@ def create_rag_agent(vector_store):
         """
 
         response = llm.invoke(prompt)
-
         return response.content
 
     return rag_chain
