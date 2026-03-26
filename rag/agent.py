@@ -1,18 +1,33 @@
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import RetrievalQA
+from langchain_openai import ChatOpenAI
+import streamlit as st
 
 def create_rag_agent(vector_store):
+    retriever = vector_store.as_retriever()
+
     llm = ChatOpenAI(
+        model="gpt-4o-mini",
         temperature=0,
-        model="gpt-4o-mini"
+        api_key=st.secrets["OPENAI_API_KEY"]
     )
 
-    retriever = vector_store.as_retriever(search_kwargs={"k": 5})
+    def rag_chain(query):
+        # ✅ ONLY THIS (no old method anywhere)
+        docs = retriever.invoke(query)
 
-    qa_chain = RetrievalQA.from_chain_type(
-        llm=llm,
-        retriever=retriever,
-        return_source_documents=True
-    )
+        context = "\n".join([doc.page_content for doc in docs])
 
-    return qa_chain
+        prompt = f"""
+        Answer ONLY using the EXCEL files from C-Folder path.
+        If not found, say "Not found".
+
+        Context:
+        {context}
+
+        Question:
+        {query}
+        """
+
+        response = llm.invoke(prompt)
+        return response.content
+
+    return rag_chain
